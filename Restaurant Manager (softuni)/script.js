@@ -101,10 +101,6 @@ function processRestaurantManagerCommands(commands) {
 				}
 			}
 
-			Restaurant.prototype.addRecipe = function(receipe) {
-
-			}
-
 			return Restaurant;
 		}());
 
@@ -203,12 +199,15 @@ function processRestaurantManagerCommands(commands) {
 				this._hasSugar = true;
 			}
 
+			Dessert.prototype = Object.create(Meal.prototype);
+			Dessert.prototype.constructor = Dessert;
+
 			Dessert.prototype.toString = function() {
-				return Meal.prototype.toString.call(this);
+				return (this._hasSugar ? '' : '[NO SUGAR] ') + Meal.prototype.toString.call(this);
 			};
 
 			Dessert.prototype.toggleSugar = function() {
-				this._hasSugar = !this._hasSugar;
+				this._hasSugar = !(this._hasSugar);
 			}
 
 			return Dessert;
@@ -465,9 +464,9 @@ function processRestaurantManagerCommands(commands) {
 		}
 	});
 
-	// return results.trim();
-	console.log(results.trim());
-	debugger;
+	return results.trim();
+	// console.log(results.trim());
+	// debugger;
 }
 
 // ------------------------------------------------------------
