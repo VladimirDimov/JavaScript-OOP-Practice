@@ -66,7 +66,7 @@ var AnimalCherarhy = (function(){
     }
 
     Dog.prototype = Object.create(Animal.prototype);
-    Dog.prototype.constructor = Dog;
+    // Dog.prototype.constructor = Dog;
     Dog.prototype.Introduce = function(){
       return Animal.prototype.Introduce.call(this) + ' I am a dog.';
     };
