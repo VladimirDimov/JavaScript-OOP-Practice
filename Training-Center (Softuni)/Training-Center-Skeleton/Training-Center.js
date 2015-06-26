@@ -1,19 +1,39 @@
 ﻿function processTrainingCenterCommands(commands) {
-
     'use strict';
+    if (!Array.prototype.find) {
+      Array.prototype.find = function(predicate) {
+        if (this == null) {
+          throw new TypeError('Array.prototype.find called on null or undefined');
+        }
+        if (typeof predicate !== 'function') {
+          throw new TypeError('predicate must be a function');
+        }
+        var list = Object(this);
+        var length = list.length >>> 0;
+        var thisArg = arguments[1];
+        var value;
 
+        for (var i = 0; i < length; i++) {
+          value = list[i];
+          if (predicate.call(thisArg, value, i, list)) {
+            return value;
+          }
+        }
+        return undefined;
+      };
+    }
     var Validators = (function() {
         return {
             NonEmptyStringMandatory: function(str, strInfo) {
                 if (!str) {
                     throw new Error('Invalid undefined string: ' + strInfo);
                 };
-                if (str == '') {
+                if (str === '') {
                     throw new Error('Invalid empty string: ' + strInfo);
                 };
             },
             NonEmptyStringNonMandatory: function(str, strInfo) {
-                if (str == '') {
+                if (str === '') {
                     throw new Error('Invalid empty string: ' + strInfo);
                 };
             },
@@ -57,13 +77,13 @@
                 };
             },
             validateDateInRange: function(date, min, max, info) {
-                // Validators.validateDate(date);
+                
                 if (date < min || date > max) {
                     throw new Error('Date out of range: ' + info);
                 };
             },
             validateTrainer: function(trainer, info) {
-                if (trainer) {                    
+                if (trainer) {
                     if (trainer.constructor.name != 'Trainer') {
                         throw new Error('Invalid trainer: ' + info);
                     };
@@ -184,13 +204,29 @@
                 var deleteArgs = cmdArgs.splice(1).join(' ');
                 switch (objectType) {
                     case 'Trainer':
-
-                        throw new Error('Command "delete Trainer" not implemented.');
+                        executeDeleteTrainerCommand(deleteArgs);
                         break;
                     default:
                         throw new Error('Unknown object to delete: ' + objectType);
                 }
                 return objectType + ' deleted.';
+            }
+
+            function executeDeleteTrainerCommand(username){
+              var deleteIndex;
+              if(_trainers.find(function findMatch(item, index){
+                deleteIndex = index;
+                return item.getUsername() === username;
+              })){
+                _trainers.splice(deleteIndex, 1);
+              }
+
+              _trainings.forEach(function(element, index){
+              	if (element.getTrainer().getUsername() === username) {
+              		element.setTrainer(undefined);
+              	};
+              });
+
             }
 
             var trainingCenterEngine = {
@@ -238,6 +274,12 @@
                 Validators.NonEmptyStringMandatory(value, 'Trainer username');
                 this._userName = value;
             };
+            Trainer.prototype.toString = function () {
+              var firstNameText = this.getFirstName() ? ';first-name=' + this.getFirstName() : '';
+              var emailText =  this.getEmail() ? ';email=' + this.getEmail() : '';
+              return this.constructor.name + '[username=' + this.getUsername()  + firstNameText +
+                ';last-name=' + this.getLastName()  + emailText + ']';
+            };
 
             return Trainer;
         }());
@@ -281,6 +323,9 @@
                 this._name = value;
             };
             Training.prototype.setStartDate = function(value) {
+            	if (!value) {
+            		throw new Error('Start-date missing');
+            	};
                 Validators.validateDateInRange(value,
                     new Date(2014,2,29),
                     new Date(2015,11,31),
@@ -292,16 +337,13 @@
                 Validators.validateTrainer(value, 'Training.prototype.setTrainer');
                 this._trainer = value;
             };
+            Training.prototype.toString = function () {
+              var trainerText = this.getTrainer() ? ';trainer=' + this.getTrainer().toString() : '';
+              var descriptionText = this.getDescription() ?
+                                    ';description=' + this.getDescription() : '';
 
-            function parseDate(val) {
-                var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                var splitDate = val.split(/\-/g);
-                var y = parseInt(splitDate[2]);
-                var m = MONTHS.indexOf(splitDate[1]);
-                var d = parseInt(splitDate[0]);
-
-                return new Date(y, m, d);
-            }
+              return this.constructor.name + '[name=' + this.getName() + descriptionText + trainerText;
+            };
 
             return Training;
         }());
@@ -315,6 +357,13 @@
 
             Course.prototype = Object.create(Training.prototype);
             Course.prototype.constructor = Course;
+            Course.prototype.toString = function () {
+              var durationText = this.getDuration() ?
+                                    ';duration=' + this.getDuration() : '';
+
+                            return Training.prototype.toString.call(this) + ';start-date=' +
+                            formatDate(this.getStartDate()) + durationText + ']';
+            };
 
             return Course;
         }());
@@ -328,10 +377,15 @@
 
             Seminar.prototype = Object.create(Training.prototype);
             Seminar.prototype.constructor = Seminar;
+            Seminar.prototype.toString = function () {
+              var durationText = this.getDuration() ?
+                                    ';duration=' + this.getDuration() : '';
 
+              return Training.prototype.toString.call(this)  + ';date=' +
+              formatDate(this.getStartDate()) + durationText + ']';
+            };
             return Seminar;
         }());
-
 
         // TODO: implement RemoteCourse class
         var RemoteCourse = (function() {
@@ -349,6 +403,15 @@
             RemoteCourse.prototype.setLocation = function(value) {
                 Validators.NonEmptyStringMandatory(value);
                 this._location = value;
+            };
+            RemoteCourse.prototype.toString = function () {
+              var locationText = this.getLocation() ?
+                                    ';location=' + this.getLocation() : '';
+              var durationText = this.getDuration() ?
+                                                          ';duration=' + this.getDuration() : '';
+
+              return Training.prototype.toString.call(this)  + ';start-date=' +
+              formatDate(this.getStartDate()) + durationText + locationText + ']';
             };
 
             return RemoteCourse;
@@ -399,7 +462,7 @@
                 var cmdResult = trainingcenter.engine.TrainingCenterEngine.executeCommand(cmd);
                 results += cmdResult + '\n';
             } catch (err) {
-                console.log(err.message);
+                // console.log(err.message);
                 results += 'Invalid command.\n';
             }
         }
