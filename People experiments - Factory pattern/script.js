@@ -19,11 +19,12 @@ var Human = (function() {
 
 	Object.defineProperty(Human, 'prop', {
 		get: function(){
-			return this.prop;
+			return this.prop1;
 		},
 		set: function(value){
-			this.prop = value;
-		}
+			this.prop1 = value;
+		},
+		sealed: false
 	});
 
 	function setFullName(name) {
@@ -50,12 +51,17 @@ var Student = (function(parent) {
 var pesho = Object.create(Human)
 	.init('Petar', 'Petrov', 25);
 
+	pesho.prop1 = 'BBB';
+
 var gosho = Object.create(Student)
 	.init('Georgi', 'Georgiev', 11, 5);
 console.log(gosho.fullName);
 
 gosho.fullName = 'Georeto Goshev';
 console.log(gosho.fullName);
+
+gosho.prop1 = "AAA";
+gosho.prop1 = "CCC";
 
 var func = Human;
 
