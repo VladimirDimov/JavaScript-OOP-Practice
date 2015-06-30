@@ -9,6 +9,15 @@ var Human = (function() {
 		return '[' + this.firstname + ' ' + this.lastname + ']';
 	}
 
+	Object.defineProperty(Human, 'hairColor', {
+		get: function(){
+			return this.hairColor;
+		},
+		set: function(value){
+			this.hairColor = value;
+		}
+	})
+
 	return Human;
 }());
 
@@ -36,6 +45,7 @@ var pesho = new Student('Petar', 'Petrov', 7);
 console.log(pesho.toString());
 console.log(pesho instanceof(Human));
 console.log(pesho.constructor === Student);
-
+pesho.hairColor = 'red';
+console.log(pesho.hairColor);
 debugger;
 

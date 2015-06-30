@@ -17,6 +17,15 @@ var Human = (function() {
 		}
 	};
 
+	Object.defineProperty(Human, 'prop', {
+		get: function(){
+			return this.prop;
+		},
+		set: function(value){
+			this.prop = value;
+		}
+	});
+
 	function setFullName(name) {
 		name = name.split(/\s+/);
 		this.firstName = name[0];
@@ -29,8 +38,7 @@ var Human = (function() {
 var Student = (function(parent) {
 	var Student = {
 		init: function(firstName, lastName, age, grade) {
-			// var obj = Object.create(parent).init(firstName, lastName, age);
-			Student.protype = Object.create(parent.prototype);
+			var obj = Object.create(parent).init(firstName, lastName, age);
 			obj.grade = grade;
 			return obj;
 		}
@@ -48,6 +56,8 @@ console.log(gosho.fullName);
 
 gosho.fullName = 'Georeto Goshev';
 console.log(gosho.fullName);
+
+var func = Human;
 
 
 
