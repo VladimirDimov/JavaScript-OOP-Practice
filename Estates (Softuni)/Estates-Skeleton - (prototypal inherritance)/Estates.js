@@ -49,7 +49,6 @@
 			}
 		}
 
-
 		return Validators;
 	}());
 
@@ -162,7 +161,6 @@
 		return Apartment;
 	}());
 
-
 	var Office = (function() {
 		var Office = Object.create(BuildingEstate);
 		Object.defineProperties(Office, {
@@ -179,7 +177,6 @@
 
 		return Office;
 	}());
-
 
 	var House = (function() {
 		var House = Object.create(Estate);
@@ -212,7 +209,6 @@
 
 		return House;
 	}());
-
 
 	var Garage = (function(parent) {
 		var Garage = Object.create(parent);
@@ -256,7 +252,6 @@
 		return Garage;
 	}(Estate));
 
-
 	var Offer = (function() {
 		var Offer = {
 			init: function(estate, price) {
@@ -268,6 +263,9 @@
 				value: 'Offer'
 			},
 			set estate(value) {
+				if (!value) {
+					throw new Error('Invalid estate null value');
+				};
 				this._estate = value;
 			},
 			get estate() {
@@ -489,6 +487,9 @@
 			var selectedOffers;
 			minPrice = Number(minPrice);
 			maxPrice = Number(maxPrice);
+
+			Validators.validatePositiveInteger(minPrice);
+			Validators.validatePositiveInteger(maxPrice);			
 
 			if (isNaN(minPrice) || isNaN(maxPrice)) {
 				throw new Error('Invalid price range arguments');
