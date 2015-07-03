@@ -5,26 +5,26 @@ function processTravelAgencyCommands(commands) {
 		validateNotEmptyString: function(value, methodName) {
 			if (!value) {
 				throw new Error('Invalid null value. Method ' + methodName);
-			};
+			}
 			if (value === '') {
 				throw new Error('Invalid empty string. Method ' + methodName);
-			};
+			}
 		},
 		validateDate: function(value, methodName) {
 			if (!value) {
 				throw new Error('Invalid null value. Method ' + methodName);
-			};
+			}
 			if (!(value instanceof(Date))) {
 				throw new Error('Invalid date object. Method ' + methodName);
-			};
+			}
 		},
 		validateNonNegativeNumber: function(value, methodName) {
 			if (isNaN(value)) {
 				throw new Error('Value is not a number. Method ' + methodName);
-			};
+			}
 			if (value < 0) {
 				throw new Error('Invalid negative number. Method ' + methodName);
-			};
+			}
 		}
 	};
 
@@ -51,7 +51,7 @@ function processTravelAgencyCommands(commands) {
 				get landmark() {
 					return this._landmark;
 				},
-				toString() {
+				toString: function() {
 					return 'Destination: location=' + this.location + ',landmark=' + this.landmark;
 				}
 			};
@@ -98,7 +98,7 @@ function processTravelAgencyCommands(commands) {
 				get price() {
 					return this._price;
 				},
-				toString() {
+				toString: function() {
 					return ' * ' + this.typeName + ': name=' + this.name + ',start-date=' + formatDate(this.startDate) + ',end-date=' + formatDate(this.endDate) + ',price=' + this.price.toFixed(2);
 				}
 			};
@@ -131,7 +131,7 @@ function processTravelAgencyCommands(commands) {
 					value: function(value) {
 						if (!isValidDestination(value)) {
 							throw new Error('Invalid destination object');
-						};
+						}
 
 						this._destinations.push(value);
 					}
@@ -143,7 +143,7 @@ function processTravelAgencyCommands(commands) {
 								return !(item.location === value.location &&
 									item.landmark === value.landmark);
 							});
-						};
+						}
 					}
 				},
 				getDestinations: {
@@ -161,7 +161,7 @@ function processTravelAgencyCommands(commands) {
 			function isValidDestination(value) {
 				if (Models.Destination.isPrototypeOf(value)) {
 					return true;
-				};
+				}
 				return false;
 			}
 
@@ -169,7 +169,7 @@ function processTravelAgencyCommands(commands) {
 				if (that.typeName === 'Excursion') {
 					var destinationsText = that.getDestinations().join(';') || '-';
 					return '\n ** Destinations: ' + destinationsText;
-				};
+				}
 				return '';
 			}
 
@@ -177,8 +177,7 @@ function processTravelAgencyCommands(commands) {
 		})(Travel);
 
 		var Vacation = (function(parent) {
-			var Vacation = Object.create(parent);
-			Object.defineProperties(Vacation, {
+			var Vacation = Object.create(parent, {
 				init: {
 					value: function(name, startDate, endDate, price, location, accommodation) {
 						parent.init.call(this, name, startDate, endDate, price);
@@ -202,7 +201,7 @@ function processTravelAgencyCommands(commands) {
 					set: function(value) {
 						if (value) {
 							Validators.validateNotEmptyString(value);
-						};
+						}
 
 						this._accomodation = value;
 					},
@@ -236,7 +235,7 @@ function processTravelAgencyCommands(commands) {
 					set: function(value) {
 						if (value) {
 							Validators.validateNotEmptyString(value);
-						};
+						}
 						this._startDock = value;
 					},
 					get: function() {
@@ -262,8 +261,7 @@ function processTravelAgencyCommands(commands) {
 			Vacation: Vacation,
 			Excursion: Excursion,
 			Cruise: Cruise,
-			Destination: Destination
-		}
+		};
 	}());
 
 	var TravellingManager = (function() {
@@ -361,7 +359,7 @@ function processTravelAgencyCommands(commands) {
 					});
 				} else {
 					filteredTravels = Object.create(_travels);
-				};
+				}
 
 				filteredTravels = filteredTravels.filter(function(item) {
 					return item.price >= minPrice && item.price <= maxPrice;
@@ -374,7 +372,7 @@ function processTravelAgencyCommands(commands) {
 
 			function processAddDestinationCommand(command) {
 				var destination = getDestinationByLocationAndLandmark(command["location"], command["landmark"]),
-					travel = getTravelByName(command["name"]);
+					travel = getTravelByName(command["name"])
 
 				if (!(Models.Excursion.isPrototypeOf(travel))) {
 					throw new Error("Travel does not have destinations.");
@@ -388,7 +386,7 @@ function processTravelAgencyCommands(commands) {
 				var destination = getDestinationByLocationAndLandmark(command["location"], command["landmark"]),
 					travel = getTravelByName(command["name"]);
 
-				if (!(travel.typeName === 'Excursion')) {
+				if (travel.typeName !== 'Excursion') {
 					throw new Error("Travel does not have destinations.");
 				}
 				travel.removeDestination(destination);
@@ -437,7 +435,7 @@ function processTravelAgencyCommands(commands) {
 				processAddDestinationCommand: processAddDestinationCommand,
 				processRemoveDestinationCommand: processRemoveDestinationCommand,
 				processFilterTravelsCommand: processFilterTravelsCommand
-			}
+			};
 		}());
 
 		var Command = (function() {
@@ -501,7 +499,7 @@ function processTravelAgencyCommands(commands) {
 		return {
 			init: init,
 			executeCommands: executeCommands
-		}
+		};
 	}());
 
 	var parseDate = function(dateStr) {
@@ -514,21 +512,21 @@ function processTravelAgencyCommands(commands) {
 			throw new Error("Invalid date: " + dateStr);
 		}
 		return date;
-	}
+	};
 
 	var formatDate = function(date) {
 		var day = date.getDate();
 		var monthName = date.toString().split(' ')[1];
 		var year = date.getFullYear();
 		return day + '-' + monthName + '-' + year;
-	}
+	};
 
 	var output = "";
 	TravellingManager.init();
 
 	commands.forEach(function(cmd) {
 		var result;
-		if (cmd != "") {
+		if (cmd !== "") {
 			try {
 				result = TravellingManager.executeCommands(cmd) + "\n";
 			} catch (e) {
