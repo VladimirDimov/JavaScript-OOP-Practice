@@ -18,10 +18,10 @@ var Human = (function() {
 	};
 
 	Object.defineProperty(Human, 'prop', {
-		get: function(){
+		get: function() {
 			return this.prop1;
 		},
-		set: function(value){
+		set: function(value) {
 			this.prop1 = value;
 		},
 		sealed: false
@@ -37,13 +37,24 @@ var Human = (function() {
 }());
 
 var Student = (function(parent) {
-	var Student = {
-		init: function(firstName, lastName, age, grade) {
-			var obj = Object.create(parent).init(firstName, lastName, age);
-			obj.grade = grade;
-			return obj;
+	var Student = Object.create(parent);
+	Object.defineProperties(Student, {
+		init: {
+			value: function(firstName, lastName, age, grade) {
+				parent.init.call(this, firstName, lastName, age);
+				this.grade = grade;
+				return this;
+			}
+		},
+		grade: {
+			set: function(value) {
+				this._grade = value;
+			},
+			get: function() {
+				value: return this._grade;
+			}
 		}
-	}
+	});
 
 	return Student;
 }(Human));
@@ -51,20 +62,27 @@ var Student = (function(parent) {
 var pesho = Object.create(Human)
 	.init('Petar', 'Petrov', 25);
 
-	pesho.prop1 = 'BBB';
+pesho.prop1 = 'BBB';
 
 var gosho = Object.create(Student)
 	.init('Georgi', 'Georgiev', 11, 5);
 console.log(gosho.fullName);
 
 gosho.fullName = 'Georeto Goshev';
-console.log(gosho.fullName);
+console.log(gosho.firstName + ' ' + gosho.lastName);
 
-gosho.prop1 = "AAA";
-gosho.prop1 = "CCC";
+console.log('Is gosho Human?  ' + Human.isPrototypeOf(gosho));
 
 var func = Human;
 
 
+var A = {};
+var B = Object.create(A);
+var C = Object.create(B);
+
+
+var a1 = A.isPrototypeOf(C) // true
+var a2 = B.isPrototypeOf(C) // true
+var a3 = Array.prototype.isPrototypeOf(C) // false
 
 debugger;

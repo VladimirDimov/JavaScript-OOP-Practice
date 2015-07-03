@@ -47,5 +47,6 @@ console.log(pesho instanceof(Human));
 console.log(pesho.constructor === Student);
 pesho.hairColor = 'red';
 console.log(pesho.hairColor);
+console.log(pesho.isPrototypeOf(Human));
 debugger;
 
