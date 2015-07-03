@@ -6,47 +6,47 @@
 			validateNonEmptyString: function(value, methodName) {
 				if (typeof value != 'string') {
 					throw new Error('Value must be a string. Method ' + methodName);
-				};
+				}
 				if (value === '') {
 					throw new Error('Invalid empty string. Method ' + methodName);
-				};
+				}
 			},
 			validateIntegerInRange: function(value, minValue, maxValue, methodName) {
 				validateInteger(value, methodName);
 				if (typeof minValue != 'number' || typeof maxValue != 'number') {
 					throw new Error('Range values must be valid numbers. Method ' + value);
-				};
+				}
 				if (value < minValue || value > maxValue) {
 					throw new Error('Value is out of the given range. Method ' + methodName);
-				};
+				}
 				if ((value | 0) !== value) {
 					throw new Error('Number must be an integer. Method' + methodName);
-				};
+				}
 			},
 			validateBoolean: function(value, methodName) {
 				if (typeof value != 'boolean') {
 					throw new Error('Invalid non-boolean value. Method ' + methodName);
-				};
+				}
 			},
 			validatePositiveInteger: function(value, methodName) {
 				validateInteger(value, methodName);
 				if (value < 0) {
 					throw new Error('Invalid negative value. Method ' + methodName);
-				};
+				}
 			}
 		};
 
 		function validateInteger(value, methodName) {
 			validateNumber(value, methodName);
-			if ((value | 0) !== value) {
+			if (!(value % 1 === 0)) {
 				throw new Error('Number must be an integer. Method ' + methodName);
 			}
 		}
 
 		function validateNumber(value, methodName) {
-			if (typeof value != 'number') {
-				throw new Error('Value must be a number. Method ' + value);
-			};
+			if (isNaN(value)) {
+				throw new Error('Value must be a number. Method ' + methodName);
+			}
 		}
 
 
@@ -191,7 +191,7 @@
 					return this;
 				}
 			},
-			constructor: {
+			typeName: {
 				value: 'House'
 			},
 			floors: {
@@ -201,6 +201,11 @@
 				},
 				get: function() {
 					return this._floors;
+				}
+			},
+			toString: {
+				value: function() {
+					return Estate.toString.call(this) + ', Floors: ' + this.floors;
 				}
 			}
 		});
@@ -293,7 +298,7 @@
 				}
 			},
 			typeName: {
-				value: 'RentOffer'
+				value: 'Rent'
 			}
 		});
 
@@ -305,12 +310,12 @@
 		Object.defineProperties(SaleOffer, {
 			init: {
 				value: function(estate, price) {
-					parent.init.call(this, Estate, price);
+					parent.init.call(this, estate, price);
 					return this;
 				}
 			},
 			typeName: {
-				value: 'SaleOffer'
+				value: 'Sale'
 			}
 		});
 
@@ -341,6 +346,8 @@
 					return executeFindSalesByLocationCommand(cmdArgs[0]);
 				case 'find-rents-by-location':
 					return executeFindRentsByLocationCommand(cmdArgs[0]);
+				case 'find-rents-by-price':
+					return executeFindRentsByPriceCommand(cmdArgs[0], cmdArgs[1]);
 				default:
 					throw new Error('Unknown command: ' + cmdName);
 			}
@@ -404,7 +411,7 @@
 
 		function findEstateByName(estateName) {
 			for (var i = 0; i < _estates.length; i++) {
-				if (_estates[i].name == estateName) {
+				if (_estates[i].name === estateName) {
 					return _estates[i];
 				}
 			}
@@ -453,28 +460,56 @@
 			}
 			var selectedOffers = _offers.filter(function(offer) {
 				return offer.estate.location === location &&
-					offer instanceof SaleOffer;
+					offer.typeName === 'Sale';
 			});
-			selectedOffers.sort(function(a, b) {
+
+			selectedOffers = selectedOffers.sort(function(a, b) {
 				return a.estate.name.localeCompare(b.estate.name);
 			});
+
 			return formatQueryResults(selectedOffers);
 		}
 
 		function executeFindRentsByLocationCommand(location) {
 			if (!location) {
 				throw new Error('Location cannot be empty');
-			};
+			}
 			var selectedOffers = _offers.filter(function(item) {
 				return (item.estate.location === location) &&
-					(item.typeName === 'RentOffer');
+					(item.typeName === 'Rent');
 			});
 
-			formatQueryResults(
-				selectedOffers.sort(function(a, b) {
-					orderOffersByEstateName(a, b);
-				})
-			);
+			selectedOffers = selectedOffers.sort(function(a, b) {
+				return a.estate.name.localeCompare(b.estate.name);
+			});
+			return formatQueryResults(selectedOffers);
+		}
+
+		function executeFindRentsByPriceCommand(minPrice, maxPrice) {
+			var selectedOffers;
+			minPrice = Number(minPrice);
+			maxPrice = Number(maxPrice);
+
+			if (isNaN(minPrice) || isNaN(maxPrice)) {
+				throw new Error('Invalid price range arguments');
+			}
+
+			selectedOffers = _offers.filter(function(item) {
+				var type = item.typeName;
+				return type === "Rent" &&
+					item.price >= minPrice &&
+					item.price <= maxPrice;
+			});
+
+			return formatQueryResults(selectedOffers.sort(function(a, b) {
+				if (a.price < b.price) {
+					return -1;
+				} else if (a.price > b.price) {
+					return 1;
+				} else {
+					return a.estate.name.localeCompare(b.estate.name);
+				}
+			}));
 		}
 
 		function formatQueryResults(offers) {
@@ -487,32 +522,10 @@
 					var offer = offers[i];
 					result += '  [Estate: ' + offer.estate.name +
 						', Location: ' + offer.estate.location +
-						', Price: ' + offer.price() + ']\n';
+						', Price: ' + offer.price + ']\n';
 				}
 			}
 			return result.trim();
-		}
-
-		function orderOffersByEstateName(a, b) {
-			if (!a.estate.name || !b.estate.name) {
-				throw new Error('Missing property "name" in some of the array elements');
-			};
-
-			if (a.estate.name < b.estate.name) {
-				return -1;
-			} else if (a.estate.name > b.estate.name) {
-				return 1;
-			} else {
-				return 0;
-			}
-		}
-
-		function orderOffersByPrice(a, b) {
-			if (!a.price || b.price) {
-				throw new Error('Missing property "price" in some of the array elements');
-			};
-
-			return a.price - b.price;
 		}
 
 		return {
@@ -537,7 +550,6 @@
 		}
 	});
 	return results.trim();
-
 }
 
 // ------------------------------------------------------------
