@@ -33,7 +33,11 @@ var Human = (function() {
 		this.lastName = name[1];
 	}
 
-	return Human;
+	return {
+		get: function(firstName, lastName, age){
+			return Object.create(Human).init(firstName, lastName, age);
+		}
+	};
 }());
 
 var Student = (function(parent) {
@@ -59,8 +63,7 @@ var Student = (function(parent) {
 	return Student;
 }(Human));
 
-var pesho = Object.create(Human)
-	.init('Petar', 'Petrov', 25);
+var pesho = Human.get('Petar', 'Petrov', 25);
 
 pesho.prop1 = 'BBB';
 

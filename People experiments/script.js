@@ -18,7 +18,11 @@ var Human = (function() {
 		}
 	})
 
-	return Human;
+	return {
+		get: function(firstname, lastname){
+			Object.create(Human).init(firstname,lastname);
+		}
+	};
 }());
 
 var Student = (function() {
@@ -49,4 +53,6 @@ pesho.hairColor = 'red';
 console.log(pesho.hairColor);
 console.log(pesho.isPrototypeOf(Human));
 debugger;
+
+
 
